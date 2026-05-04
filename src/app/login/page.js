@@ -16,7 +16,7 @@ export default function Login() {
         setIsLoading(true); 
         setError(''); 
 
-        const result = await login(email, password); // Call the login function from authService.
+        const result = await login(email, password); 
 
         setIsLoading(false); // Hide the loader.
 

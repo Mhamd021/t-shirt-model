@@ -3,6 +3,7 @@ import { useState } from "react";
 import styles from "../login/login.module.css";
 import { register } from "../services/authService";
 
+
 export default function Register() {
   const [formData, setFormData] = useState({
     name: "",
@@ -13,7 +14,7 @@ export default function Register() {
   });
 
   const [errors, setErrors] = useState({});
-  const [errorMessage, setErrorMessage] = useState(""); // For server-side errors
+  const [errorMessage, setErrorMessage] = useState(""); 
 
   const validations = {
     name: (value) => value.length >= 3,
@@ -47,14 +48,15 @@ export default function Register() {
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    setErrorMessage(""); // Clear previous error messages
+    setErrorMessage(""); 
     const { name, email, password } = formData;
 
-    // Call the register API
     const result = await register(name, email, password);
     if (result.success) {
       alert("Registered successfully!");
-      // Optionally navigate to another page, e.g., dashboard or login
+   
+
+      
     } else {
       setErrorMessage(result.message); // Display server-side errors
     }

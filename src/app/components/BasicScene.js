@@ -15,8 +15,14 @@ export default function BasicScene()
 
   useEffect(() => {
     const container = mountRef.current;
-    const width = container?.getBoundingClientRect().width;
-    const height = 500;
+    const getSize = () => {
+      const bounds = container?.getBoundingClientRect();
+      return {
+        width: bounds?.width || 600,
+        height: bounds?.height || 500,
+      };
+    };
+    const { width, height } = getSize();
 
     // Set up the scene, camera, and renderer
     const scene = new THREE.Scene();
@@ -121,18 +127,21 @@ scene.add(backLight);
     animate();
 
     // Handle window resizing
-    window.addEventListener("resize", () => {
-      const width = container?.getBoundingClientRect().width;
-      const height = container?.getBoundingClientRect().height;
+    const handleResize = () => {
+      const { width, height } = getSize();
 
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
       renderer.setSize(width, height);
       composer.setSize(width, height); 
-    });
+    };
+
+    window.addEventListener("resize", handleResize);
 
     // Clean up
     return () => {
+      window.removeEventListener("resize", handleResize);
+      controls.dispose();
       if (renderer) {
         renderer.dispose();
       }

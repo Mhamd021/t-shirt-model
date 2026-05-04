@@ -46,7 +46,7 @@ catch(error)
         }
         else
         {
-          return { success: false , message : 'Network error', status:0 };
+          return { success: false , message : error.message, status:0 };
         }
     }
   };
