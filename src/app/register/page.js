@@ -1,10 +1,12 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import styles from "../login/login.module.css";
 import { register } from "../services/authService";
 
 
 export default function Register() {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -53,10 +55,7 @@ export default function Register() {
 
     const result = await register(name, email, password);
     if (result.success) {
-      alert("Registered successfully!");
-   
-
-      
+      router.push("/shirtTool");
     } else {
       setErrorMessage(result.message); // Display server-side errors
     }

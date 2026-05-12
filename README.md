@@ -1,36 +1,104 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# T-Shirt Model Frontend
 
-## Getting Started
+Modern Next.js frontend for the T-Shirt model project. The app lets users register, log in, design custom shirts, upload artwork, save designs, manage saved designs, and create checkout orders through the hosted backend.
 
-First, run the development server:
+## Tech Stack
+
+- Next.js 15
+- React 19
+- Three.js
+- Axios
+- Lottie React
+- React Color
+- React Icons
+
+## Backend
+
+Production backend:
+
+```bash
+https://t-shirt-backend-server-production.up.railway.app
+```
+
+The frontend reads the backend URL from:
+
+```bash
+NEXT_PUBLIC_API_URL
+```
+
+## Local Setup
+
+Create a local `.env` file:
+
+```bash
+NEXT_PUBLIC_API_URL=https://t-shirt-backend-server-production.up.railway.app
+```
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open:
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+```bash
+http://localhost:3000
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Production Build
 
-## Learn More
+Before deploying, run:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run build
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Then test the main flows:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Register
+- Login
+- Upload image
+- Save design
+- Load saved design after relogin
+- Delete saved design
+- Place order
 
-## Deploy on Vercel
+## Vercel Deployment
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Deploy the `t-shirt-model` folder as the Vercel project root.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Use these Vercel settings:
+
+```bash
+Framework Preset: Next.js
+Build Command: npm run build
+Output Directory: .next
+Install Command: npm install
+```
+
+Add this environment variable in Vercel:
+
+```bash
+NEXT_PUBLIC_API_URL=https://t-shirt-backend-server-production.up.railway.app
+```
+
+After Vercel gives you the production frontend URL, add that URL to the Railway backend CORS environment variable.
+
+Example:
+
+```bash
+FRONTEND_URLS=https://your-vercel-app.vercel.app,http://localhost:3000
+```
+
+Redeploy the backend after changing CORS.
+
+## Environment Files
+
+`.env` is ignored by Git through `.gitignore`. Use `.env.example` as the public template.

@@ -3,7 +3,19 @@ import styles from './designpage.module.css';
 import { useState } from 'react';
 import dynamic from "next/dynamic";
 import { 
-  FaTshirt, FaImage, FaTrash, FaArrowLeft, FaArrowRight, FaArrowUp, FaArrowDown, FaRedo, FaMinus, FaPlus, FaFont, FaEye
+  FaTshirt,
+  FaImage,
+  FaTrash,
+  FaArrowLeft,
+  FaArrowRight,
+  FaArrowUp,
+  FaArrowDown,
+  FaMinus,
+  FaPlus,
+  FaFont,
+  FaEye,
+  FaFolderOpen,
+  FaShoppingCart,
 } from "react-icons/fa";
 
 const SketchPickerNoSSR = dynamic(
@@ -37,6 +49,15 @@ export default function SidebarDock({
   handleFontUpdate,
   handleFontScale,
   handleImageInput,
+  savedDesigns,
+  currentDesignId,
+  handleLoadDesign,
+  handleDeleteDesign,
+  handleNewDesign,
+  checkoutForm,
+  orders,
+  handleCheckoutChange,
+  handleSubmitOrder,
 }) {
   const [activePanel, setActivePanel] = useState(null);
    const [openDecalId, setOpenDecalId] = useState(null);
@@ -63,11 +84,13 @@ export default function SidebarDock({
   return (
     <>
       {/* Floating Dock */}
-      <div className={styles.toolDock}>
+      <div className={`${styles.toolDock} ${activePanel ? styles.dockShifted : ''}`}>
         <button onClick={() => setActivePanel(activePanel === 'color' ? null : 'color')} title="Shirt Color"><FaTshirt/></button>
         <button onClick={() => setActivePanel(activePanel === 'image' ? null : 'image')} title="Add Image"><FaImage/></button>
         <button onClick={() => setActivePanel(activePanel === 'text' ? null : 'text')} title="Add Text"><FaFont/></button>
         <button onClick={() => setActivePanel(activePanel === 'decals' ? null : 'decals')} title="Applied Decals"><FaEye/></button>
+        <button onClick={() => setActivePanel(activePanel === 'saved' ? null : 'saved')} title="Saved Designs"><FaFolderOpen/></button>
+        <button onClick={() => setActivePanel(activePanel === 'checkout' ? null : 'checkout')} title="Checkout"><FaShoppingCart/></button>
       </div>
 
       {/* Slide-Out Panel */}
@@ -84,11 +107,11 @@ export default function SidebarDock({
 
         {activePanel === 'image' && (
           <div className={styles.panelSection}>
-            <h3><FaImage/> Upload Image</h3>
+            <h3 ><FaImage/> Upload Image</h3>
             <p className={styles.panelIntro}>Add artwork, logos, or graphics as a decal on the shirt.</p>
             <div className={styles.panelCard}>
               <label className={styles.imageInput}>
-                <input type="file" onChange={handleImageInput} />
+                <input type="file" accept="image/*" onChange={handleImageInput} />
                 <span className={styles.uploadLabel}>Upload Image</span>
               </label>
             </div>
@@ -225,6 +248,134 @@ export default function SidebarDock({
 
           </div>
         )}
+
+        {activePanel === 'saved' && (
+          <div className={styles.panelSection}>
+            <h3><FaFolderOpen/> Saved Designs</h3>
+            <p className={styles.panelIntro}>Load a previous design, clean up older drafts, or start fresh.</p>
+            <div className={styles.panelCard}>
+              <button onClick={handleNewDesign} className={styles.applyTextBtn}>
+                New Blank Design
+              </button>
+            </div>
+            <ul className={styles.savedDesignList}>
+              {savedDesigns.length === 0 && (
+                <li className={styles.emptyState}>No saved designs yet.</li>
+              )}
+              {savedDesigns.map((design) => (
+                <li
+                  key={design.id}
+                  className={`${styles.savedDesignCard} ${
+                    currentDesignId === design.id ? styles.currentDesignCard : ''
+                  }`}
+                >
+                  <div className={styles.savedDesignMeta}>
+                    <span
+                      className={styles.colorSwatch}
+                      style={{ backgroundColor: design.shirtColor }}
+                    />
+                    <div>
+                      <strong>{getShortLabel(design.name)}</strong>
+                      <span>{design.decals?.length ?? 0} layer(s)</span>
+                    </div>
+                  </div>
+                  <div className={styles.savedDesignActions}>
+                    <button onClick={() => handleLoadDesign(design)}>Load</button>
+                    <button onClick={() => handleDeleteDesign(design.id)}><FaTrash/></button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {activePanel === 'checkout' && (
+          <div className={styles.panelSection}>
+            <h3><FaShoppingCart/> Checkout</h3>
+            <p className={styles.panelIntro}>Choose a shirt size and delivery details to create an order from this design.</p>
+
+            <form className={styles.checkoutForm} onSubmit={handleSubmitOrder}>
+              <div className={styles.panelCard}>
+                <label className={styles.fieldLabel}>Size</label>
+                <select
+                  className={styles.selectInput}
+                  value={checkoutForm.size}
+                  onChange={(event) => handleCheckoutChange("size", event.target.value)}
+                >
+                  <option value="XS">XS</option>
+                  <option value="S">S</option>
+                  <option value="M">M</option>
+                  <option value="L">L</option>
+                  <option value="XL">XL</option>
+                  <option value="XXL">XXL</option>
+                </select>
+
+                <label className={styles.fieldLabel}>Street</label>
+                <input
+                  className={styles.textInput}
+                  value={checkoutForm.street}
+                  onChange={(event) => handleCheckoutChange("street", event.target.value)}
+                  required
+                />
+
+                <label className={styles.fieldLabel}>City</label>
+                <input
+                  className={styles.textInput}
+                  value={checkoutForm.city}
+                  onChange={(event) => handleCheckoutChange("city", event.target.value)}
+                  required
+                />
+
+                <label className={styles.fieldLabel}>Country</label>
+                <input
+                  className={styles.textInput}
+                  value={checkoutForm.country}
+                  onChange={(event) => handleCheckoutChange("country", event.target.value)}
+                  required
+                />
+
+                <label className={styles.fieldLabel}>ZIP</label>
+                <input
+                  className={styles.textInput}
+                  value={checkoutForm.zip}
+                  onChange={(event) => handleCheckoutChange("zip", event.target.value)}
+                  required
+                />
+
+                <label className={styles.fieldLabel}>Notes</label>
+                <textarea
+                  className={styles.textAreaInput}
+                  value={checkoutForm.notes}
+                  onChange={(event) => handleCheckoutChange("notes", event.target.value)}
+                  rows={3}
+                />
+
+                <button type="submit" className={styles.applyTextBtn}>
+                  Place Order
+                </button>
+              </div>
+            </form>
+
+            <div className={styles.panelSection}>
+              <h4>Recent Orders</h4>
+              <ul className={styles.savedDesignList}>
+                {orders.length === 0 && (
+                  <li className={styles.emptyState}>No orders yet.</li>
+                )}
+                {orders.slice(0, 5).map((order) => (
+                  <li key={order.id} className={styles.savedDesignCard}>
+                    <div className={styles.orderMeta}>
+                      <strong>Order #{order.id}</strong>
+                      <span>{order.size} shirt</span>
+                      <span>{order.status}</span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
+
       </div>
     </>
   );

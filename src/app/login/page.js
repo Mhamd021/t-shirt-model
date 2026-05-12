@@ -1,9 +1,11 @@
 'use client'; 
 import { useState } from 'react'; 
+import { useRouter } from 'next/navigation';
 import styles from './login.module.css';
 import { login } from '../services/authService'; 
 
 export default function Login() {
+    const router = useRouter();
 
     const [email, setEmail] = useState(''); 
     const [password, setPassword] = useState(''); 
@@ -21,8 +23,7 @@ export default function Login() {
         setIsLoading(false); // Hide the loader.
 
         if (result.success) {
-            alert('Login successful!'); // Notify the user about success.
-            // Optionally, navigate to a dashboard page.
+            router.push('/shirtTool');
         } else {
             setError(result.message); // Show the error message from the backend.
         }

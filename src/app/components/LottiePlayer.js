@@ -1,16 +1,16 @@
 import { useLottie } from "lottie-react";
-import animationData from "@/assets/animations/loading.json";
+import animationData from "@/assets/animations/shirt1.json";
 
-const LottiePlayer = () => {
+const LottiePlayer = ({ className }) => {
   const options = {
     animationData,
     loop: true,
     autoplay: true,
-    style: { height: 300, width: 300 },
+    style: { height: "100%", width: "100%" },
   };
 
   const { View } = useLottie(options);
-  return View;
+  return <div className={className}>{View}</div>;
 };
 
 export default LottiePlayer;

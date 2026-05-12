@@ -178,11 +178,22 @@ function createDecalMaterial(texture) {
       const target = group.children.find((mesh) => mesh.userData.id === id);
       if (target) {
         group.remove(target);
+        decalMapRef.current.delete(id);
         target.geometry.dispose();
         if (target.material.map) target.material.map.dispose();
         target.material.dispose();
       }
      
+    },
+    clearDecals: () => {
+      const group = decalGroupRef.current;
+      group.children.forEach((mesh) => {
+        mesh.geometry.dispose();
+        if (mesh.material.map) mesh.material.map.dispose();
+        mesh.material.dispose();
+      });
+      group.clear();
+      decalMapRef.current.clear();
     },
     selectDecalById: (id) => {
   const mesh = decalMapRef.current.get(id);
@@ -206,6 +217,7 @@ function createDecalMaterial(texture) {
   
   if (oldMesh) {
     group.remove(oldMesh);
+    decalMapRef.current.delete(id);
     oldMesh.geometry.dispose();
     if (oldMesh.material.map) oldMesh.material.map.dispose();
     oldMesh.material.dispose();
