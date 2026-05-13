@@ -303,9 +303,24 @@
   }
   
   
-  .inputGroup {
-    margin-bottom: 0.4rem;
-  }
+.inputGroup {
+  margin-bottom: 0.4rem;
+}
+
+.registerField {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.registerField .inputLabel {
+  text-align: left;
+}
+
+.registerTerms {
+  align-items: flex-start;
+}
   
   .termsContainer {
     margin: 0.5rem 0 1rem;
