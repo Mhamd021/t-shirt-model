@@ -14,7 +14,8 @@ import { DecalGeometry } from "three/examples/jsm/geometries/DecalGeometry.js";
 
 let fabricMapsCache = null;
 
-const DesignScene = forwardRef((props, ref) => {
+const DesignScene = forwardRef(function DesignScene(props, ref) {
+  const { onMoodChange, onSceneReady } = props;
   const containerRef = useRef(null);
   const modelRef = useRef(null);
   const rendererRef = useRef(null);
@@ -539,7 +540,7 @@ modelRef.current?.traverse((child) => {
 
 
 rendererRef.current.toneMappingExposure = target.exposure;
-    props.onMoodChange?.(mood);
+    onMoodChange?.(mood);
 
 const camTarget = {
   original: {
@@ -796,7 +797,7 @@ rimLightRightRef.current = rimLightRight;
         scene.add(decalGroupRef.current);
         if (!readyNotifiedRef.current) {
           readyNotifiedRef.current = true;
-          props.onSceneReady?.();
+          onSceneReady?.();
         }
       },
       undefined,
@@ -842,5 +843,7 @@ rimLightRightRef.current = rimLightRight;
 
   return <div ref={containerRef}></div>;
 });
+
+DesignScene.displayName = "DesignScene";
 
 export default DesignScene;
