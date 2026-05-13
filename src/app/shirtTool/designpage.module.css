@@ -1,4 +1,4 @@
-:root {
+.container {
   --container-bg:
     radial-gradient(circle at 14% 14%, rgba(255, 221, 188, 0.55), transparent 24%),
     radial-gradient(circle at 82% 18%, rgba(189, 208, 221, 0.42), transparent 22%),
@@ -22,9 +22,6 @@
   --surface: rgba(255, 255, 255, 0.52);
   --surface-strong: rgba(255, 255, 255, 0.76);
   --surface-dark: rgba(24, 28, 36, 0.72);
-}
-
-.container {
   position: relative;
   display: flex;
   width: 100%;

@@ -353,7 +353,7 @@
 {
   color: white;
 }
-button:disabled {
+.loginCard button:disabled {
   background-color: #d3d3d3; /* Light gray background */
   color: #808080; /* Gray text */
   cursor: not-allowed; /* Disabled pointer cursor */
