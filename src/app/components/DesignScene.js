@@ -2,20 +2,19 @@
 import React, {
   useEffect,
   useRef,
+  useCallback,
   forwardRef,
   useImperativeHandle,
 } from "react";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import { EffectComposer } from "postprocessing";
-import { RenderPass } from "postprocessing";
 import { DecalGeometry } from "three/examples/jsm/geometries/DecalGeometry.js";
 
 let fabricMapsCache = null;
 
 const DesignScene = forwardRef(function DesignScene(props, ref) {
-  const { onMoodChange, onSceneReady } = props;
+  const { onMoodChange, onSceneReady, sceneApiRef } = props;
   const containerRef = useRef(null);
   const modelRef = useRef(null);
   const rendererRef = useRef(null);
@@ -42,7 +41,8 @@ function createFabricMaps() {
     return fabricMapsCache;
   }
 
-  const size = 512;
+  const isMobile = typeof window !== "undefined" && window.matchMedia("(max-width: 700px)").matches;
+  const size = isMobile ? 256 : 384;
   const diffuseCanvas = document.createElement("canvas");
   const roughnessCanvas = document.createElement("canvas");
   const bumpCanvas = document.createElement("canvas");
@@ -131,7 +131,7 @@ function createFabricMaps() {
     texture.wrapS = THREE.RepeatWrapping;
     texture.wrapT = THREE.RepeatWrapping;
     texture.repeat.set(repeat, repeat);
-    texture.anisotropy = 4;
+    texture.anisotropy = isMobile ? 2 : 4;
     return texture;
   };
 
@@ -162,7 +162,7 @@ function createDecalMaterial(texture) {
 }
   
   
-  useImperativeHandle(ref, () => ({
+  const createSceneApi = useCallback(() => ({
     changeModelColor: (colorHex) => {
       if (modelRef.current) {
         modelRef.current.traverse((child) => {
@@ -482,6 +482,7 @@ function createDecalMaterial(texture) {
 
     const target = moods[mood];
     if (!target) return;
+    if (!sunLightRef.current || !ambientRef.current || !rendererRef.current || !cameraRef.current || !controlsRef.current) return;
     fadeLight(sunLightRef.current, target.sun.intensity, 500);
     sunLightRef.current.color.set(target.sun.color);
     ambientRef.current.color.set(target.ambient.color);
@@ -587,7 +588,17 @@ requestAnimationFrame(animateCam);
 
 
   }
-  }));
+  }), [onMoodChange]);
+
+  useImperativeHandle(ref, createSceneApi, [createSceneApi]);
+
+  useEffect(() => {
+    if (!sceneApiRef) return undefined;
+    sceneApiRef.current = createSceneApi();
+    return () => {
+      sceneApiRef.current = null;
+    };
+  }, [sceneApiRef, createSceneApi]);
   
 function fadeLight(light, target, duration) {
   const start = light.intensity;
@@ -615,6 +626,8 @@ function fadeLight(light, target, duration) {
       };
     };
     const { width, height } = getSize();
+    const isMobile = window.matchMedia("(max-width: 700px)").matches;
+    const pixelRatioCap = isMobile ? 1.35 : 1.75;
 
     sceneRef.current = new THREE.Scene();
 const scene = sceneRef.current;
@@ -626,8 +639,8 @@ sunLight.position.set(5, 10, -5); // position above and to the side
 sunLight.castShadow = true;
 
 
-sunLight.shadow.mapSize.width = 2048;
-sunLight.shadow.mapSize.height = 2048;
+sunLight.shadow.mapSize.width = isMobile ? 512 : 1024;
+sunLight.shadow.mapSize.height = isMobile ? 512 : 1024;
 sunLight.shadow.camera.near = 1;
 sunLight.shadow.camera.far = 50;
 sunLight.shadow.camera.left = -5;
@@ -666,7 +679,8 @@ rimLightRightRef.current = rimLightRight;
     camera.position.set(0,1,-2.5);
     cameraRef.current = camera;
     rendererRef.current = new THREE.WebGLRenderer({
-      antialias: true,
+      antialias: !isMobile,
+      powerPreference: "high-performance",
     });
     rendererRef.current.setSize(width, height);
     rendererRef.current.setClearColor(0xe8edf0, 1);
@@ -675,7 +689,7 @@ rimLightRightRef.current = rimLightRight;
     rendererRef.current.shadowMap.enabled = true;
     rendererRef.current.shadowMap.type = THREE.PCFSoftShadowMap;
     rendererRef.current.outputColorSpace = THREE.SRGBColorSpace;
-    rendererRef.current.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    rendererRef.current.setPixelRatio(Math.min(window.devicePixelRatio || 1, pixelRatioCap));
     container.appendChild(rendererRef.current.domElement);
 
     const controls = new OrbitControls(camera, rendererRef.current.domElement);
@@ -744,7 +758,7 @@ rimLightRightRef.current = rimLightRight;
 
         const pedestalRadius = Math.max(size.x, size.z) * 0.72;
         const pedestal = new THREE.Mesh(
-          new THREE.CylinderGeometry(pedestalRadius, pedestalRadius * 1.12, 0.22, 64),
+          new THREE.CylinderGeometry(pedestalRadius, pedestalRadius * 1.12, 0.22, isMobile ? 36 : 48),
           [
             new THREE.MeshStandardMaterial({
               color: 0xc8d5de,
@@ -765,7 +779,7 @@ rimLightRightRef.current = rimLightRight;
         pedestalRef.current = pedestal;
 
         const pedestalAccent = new THREE.Mesh(
-          new THREE.TorusGeometry(pedestalRadius * 0.92, 0.025, 16, 80),
+          new THREE.TorusGeometry(pedestalRadius * 0.92, 0.025, 10, isMobile ? 40 : 64),
           new THREE.MeshStandardMaterial({
             color: 0xffffff,
             emissive: 0xffffff,
@@ -781,7 +795,7 @@ rimLightRightRef.current = rimLightRight;
         scene.add(pedestalAccent);
 
         const shadowPlane = new THREE.Mesh(
-          new THREE.CircleGeometry(Math.max(size.x, size.z) * 1.15, 64),
+          new THREE.CircleGeometry(Math.max(size.x, size.z) * 1.15, isMobile ? 32 : 48),
           new THREE.ShadowMaterial({
             color: 0x000000,
             opacity: 0.28,
@@ -807,9 +821,6 @@ rimLightRightRef.current = rimLightRight;
     );
 
 
-    const composer = new EffectComposer(rendererRef.current);
-    composer.addPass(new RenderPass(scene, camera));
-
     const animate = () => {
       requestAnimationFrame(animate);
       const shouldAutoRotate =
@@ -818,7 +829,7 @@ rimLightRightRef.current = rimLightRight;
         performance.now() > interactionRef.current.pauseUntil;
       controls.autoRotate = shouldAutoRotate;
       controls.update();
-      composer.render();
+      rendererRef.current.render(scene, camera);
     };
     animate();
 
@@ -827,8 +838,7 @@ rimLightRightRef.current = rimLightRight;
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
       rendererRef.current.setSize(width, height);
-      rendererRef.current.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-      composer.setSize(width, height);
+      rendererRef.current.setPixelRatio(Math.min(window.devicePixelRatio || 1, pixelRatioCap));
     };
     window.addEventListener("resize", handleResize);
 

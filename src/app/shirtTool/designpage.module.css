@@ -915,6 +915,10 @@ hr.divider {
     border-radius: 18px;
   }
 
+  .toolsClosed .scene {
+    margin-top: 62px;
+  }
+
   .viewSelector {
     top: 62px;
     left: 50%;
@@ -931,6 +935,7 @@ hr.divider {
     transform: translateX(-50%);
     min-height: 38px;
     border-radius: 12px;
+    white-space: nowrap;
   }
 
   .operationsToggle:hover {
@@ -989,6 +994,13 @@ hr.divider {
     gap: 8px;
     border-radius: 16px;
     overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x;
+  }
+
+  .toolDock::-webkit-scrollbar {
+    display: none;
   }
 
   .dockShifted {
@@ -1047,7 +1059,12 @@ hr.divider {
   }
 
   .scene {
-    margin: 138px 8px 82px;
+    margin: 138px 8px 80px;
+    border-radius: 14px;
+  }
+
+  .toolsClosed .scene {
+    margin-top: 58px;
   }
 
   .moodSelector {
@@ -1059,7 +1076,19 @@ hr.divider {
   }
 
   .toolDock button {
-    width: 42px;
-    height: 42px;
+    width: 44px;
+    height: 44px;
+  }
+
+  .sidePanel {
+    bottom: 72px;
+    height: min(66dvh, 560px);
+    padding: 16px 12px 18px;
+  }
+
+  .loadingCard {
+    min-width: 0;
+    width: calc(100vw - 48px);
+    border-radius: 18px;
   }
 }

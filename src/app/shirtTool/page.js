@@ -1,10 +1,8 @@
 "use client";
 import React, { useRef, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import DesignScene from "../components/DesignScene";
+import dynamic from "next/dynamic";
 import styles from "./designpage.module.css";
-import * as THREE from "three";
-import SidebarDock from './Sidebar2';
 import LoadingOverlay from "../components/LoadingOverlay";
 import { ACCESS_TOKEN_KEY, getApiErrorMessage } from "../services/apiClient";
 import {
@@ -16,16 +14,33 @@ import {
 import { uploadImage } from "../services/uploadService";
 import { createOrder, getMyOrders } from "../services/orderService";
 
-function createStyledTextTexture({
+const DesignScene = dynamic(() => import("../components/DesignScene"), {
+  ssr: false,
+});
+
+const SidebarDock = dynamic(() => import("./Sidebar2"), {
+  ssr: false,
+});
+
+let threeModulePromise;
+const getTHREE = () => {
+  if (!threeModulePromise) {
+    threeModulePromise = import("three");
+  }
+  return threeModulePromise;
+};
+
+async function createStyledTextTexture({
   text,
   font,
   fontSize,
   textColor,
   mirrored = false,
 }) {
+  const THREE = await getTHREE();
   const canvas = document.createElement("canvas");
-  canvas.width = 2048;
-  canvas.height = 1024;
+  canvas.width = 1024;
+  canvas.height = 512;
   const ctx = canvas.getContext("2d");
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -73,12 +88,13 @@ function createStyledTextTexture({
   return texture;
 }
 
-function createEnhancedImageTexture(file) {
+async function createEnhancedImageTexture(file) {
+  const THREE = await getTHREE();
   return new Promise((resolve, reject) => {
     const imageURL = URL.createObjectURL(file);
     const image = new Image();
     image.onload = () => {
-      const maxSize = 1600;
+      const maxSize = window.matchMedia("(max-width: 700px)").matches ? 1024 : 1400;
       const scale = Math.min(maxSize / image.width, maxSize / image.height, 1);
       const width = Math.max(1, Math.round(image.width * scale));
       const height = Math.max(1, Math.round(image.height * scale));
@@ -118,7 +134,8 @@ function createEnhancedImageTexture(file) {
   });
 }
 
-function createImageTextureFromUrl(imageUrl) {
+async function createImageTextureFromUrl(imageUrl) {
+  const THREE = await getTHREE();
   return new Promise((resolve, reject) => {
     const loader = new THREE.TextureLoader();
     loader.setCrossOrigin("anonymous");
@@ -166,7 +183,7 @@ async function toFrontendDecal(savedDecal) {
       id,
       type: "text",
       label,
-      texture: createStyledTextTexture({
+      texture: await createStyledTextTexture({
         text: label,
         font,
         fontSize: fontSize * 4,
@@ -223,7 +240,10 @@ export default function ShirtTool() {
   const [currentDesignId, setCurrentDesignId] = useState(null);
   const [currentDesignName, setCurrentDesignName] = useState("");
   const [savedDesigns, setSavedDesigns] = useState([]);
-  const [operationsOpen, setOperationsOpen] = useState(true);
+  const [operationsOpen, setOperationsOpen] = useState(() => {
+    if (typeof window === "undefined") return true;
+    return !window.matchMedia("(max-width: 900px)").matches;
+  });
   const [orders, setOrders] = useState([]);
   const [checkoutForm, setCheckoutForm] = useState({
     size: "M",
@@ -233,6 +253,19 @@ export default function ShirtTool() {
     zip: "",
     notes: "",
   });
+
+  useEffect(() => {
+    const link = document.createElement("link");
+    link.rel = "preload";
+    link.as = "fetch";
+    link.href = "/models/ShirtwithoutTexture.glb";
+    link.crossOrigin = "anonymous";
+    document.head.appendChild(link);
+
+    return () => {
+      link.remove();
+    };
+  }, []);
 
 
   useEffect(() => {
@@ -298,20 +331,23 @@ export default function ShirtTool() {
     const loadLatestDesign = async () => {
       try {
         initialDesignLoadedRef.current = true;
-        setLoading(true);
+        setSaveStatus("Restoring your latest design...");
 
         const designs = await refreshSavedDesigns();
-        await refreshOrders();
+        refreshOrders().catch((error) => {
+          console.error("Orders load error", error);
+        });
         const latestDesign = designs[0];
-        if (!latestDesign) return;
+        if (!latestDesign) {
+          setSaveStatus("");
+          return;
+        }
 
         await loadDesignIntoScene(latestDesign);
         setSaveStatus(`Loaded design #${latestDesign.id}`);
       } catch (error) {
         console.error("Design load error", error);
         setSaveStatus(getApiErrorMessage(error));
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -460,34 +496,33 @@ export default function ShirtTool() {
     );
   };
 
-  const handleFlipSide = (id) => {
+  const handleFlipSide = async (id) => {
+    const targetDecal = decals.find((decal) => decal.id === id);
+    if (!targetDecal) return;
+
+    const newSide = targetDecal.side === "front" ? "back" : "front";
+    const newPosition = { ...targetDecal.position, z: newSide === "front" ? -0.2 : 0.2 };
+    const newOrientation = { ...targetDecal.orientation, y: newSide === "front" ? 0 : Math.PI };
+    const updatedTexture = targetDecal.type === "text"
+      ? await createStyledTextTexture({
+          text: targetDecal.label,
+          font: targetDecal.font,
+          fontSize: targetDecal.fontSize * 4,
+          textColor: targetDecal.textColor,
+          mirrored: newSide === "back",
+        })
+      : targetDecal.texture;
+
+    sceneRef.current.updateDecalGeometry(targetDecal.id, {
+      position: newPosition,
+      orientation: newOrientation,
+      size: targetDecal.size,
+      texture: updatedTexture,
+    });
 
     setDecals(prev =>
       prev.map(decal => {
         if (decal.id !== id) return decal;
-
-        const newSide = decal.side === "front" ? "back" : "front";
-        const newPosition = { ...decal.position, z: newSide === "front" ? -0.2 : 0.2 };
-        const newOrientation = { ...decal.orientation, y: newSide === "front" ? 0 : Math.PI };
-
-        let updatedTexture = decal.texture;
-
-        if (decal.type === "text") {
-          updatedTexture = createStyledTextTexture({
-            text: decal.label,
-            font: decal.font,
-            fontSize: decal.fontSize * 4,
-            textColor: decal.textColor,
-            mirrored: newSide === "back",
-          });
-        }
-
-        sceneRef.current.updateDecalGeometry(decal.id, {
-          position: newPosition,
-          orientation: newOrientation,
-          size: decal.size,
-          texture: updatedTexture,
-        });
         return {
           ...decal,
           position: newPosition,
@@ -532,26 +567,28 @@ export default function ShirtTool() {
     );
   };
 
-  const handleFontUpdate = (id, newFont, newColor) => {
+  const handleFontUpdate = async (id, newFont, newColor) => {
+    const targetDecal = decals.find((decal) => decal.id === id && decal.type === "text");
+    if (!targetDecal) return;
+
+    const newTexture = await createStyledTextTexture({
+      text: targetDecal.label,
+      font: newFont,
+      fontSize: targetDecal.fontSize * 4,
+      textColor: newColor,
+      mirrored: targetDecal.side === "back",
+    });
+
+    sceneRef.current.updateDecalGeometry(targetDecal.id, {
+      position: targetDecal.position,
+      orientation: targetDecal.orientation,
+      size: targetDecal.size,
+      texture: newTexture,
+    });
+
     setDecals(prev =>
       prev.map(decal => {
         if (decal.id !== id || decal.type !== "text") return decal;
-        const newTexture = createStyledTextTexture({
-          text: decal.label,
-          font: newFont,
-          fontSize: decal.fontSize * 4,
-          textColor: newColor,
-          mirrored: decal.side === "back",
-        });
-
-        sceneRef.current.updateDecalGeometry(decal.id, {
-          position: decal.position,
-          orientation: decal.orientation,
-          size: decal.size,
-          texture: newTexture,
-        });
-        setLoading(false);
-
         return {
           ...decal,
           texture: newTexture,
@@ -563,32 +600,32 @@ export default function ShirtTool() {
 
     );
   };
-  const handleFontScale = (id, direction) => {
+  const handleFontScale = async (id, direction) => {
     const step = 4;
-    setLoading(true);
+    const targetDecal = decals.find((decal) => decal.id === id && decal.type === "text");
+    if (!targetDecal) return;
+
+    const newFontSize = direction === "increase"
+      ? targetDecal.fontSize + step
+      : Math.max(8, targetDecal.fontSize - step);
+    const newTexture = await createStyledTextTexture({
+      text: targetDecal.label,
+      font: targetDecal.font,
+      fontSize: newFontSize * 4,
+      textColor: targetDecal.textColor,
+      mirrored: targetDecal.side === "back",
+    });
+
+    sceneRef.current.updateDecalGeometry(targetDecal.id, {
+      position: targetDecal.position,
+      orientation: targetDecal.orientation,
+      size: targetDecal.size,
+      texture: newTexture,
+    });
 
     setDecals(prev =>
       prev.map(decal => {
         if (decal.id !== id || decal.type !== "text") return decal;
-
-        let newFontSize = direction === "increase"
-          ? decal.fontSize + step
-          : Math.max(8, decal.fontSize - step);
-        const newTexture = createStyledTextTexture({
-          text: decal.label,
-          font: decal.font,
-          fontSize: newFontSize * 4,
-          textColor: decal.textColor,
-          mirrored: decal.side === "back",
-        });
-
-        sceneRef.current.updateDecalGeometry(decal.id, {
-          position: decal.position,
-          orientation: decal.orientation,
-          size: decal.size,
-          texture: newTexture,
-        });
-        setLoading(false);
         return {
           ...decal,
           texture: newTexture,
@@ -611,13 +648,13 @@ export default function ShirtTool() {
 
   };
 
-  const addTextDecal = (text, options = {}) => {
+  const addTextDecal = async (text, options = {}) => {
     if (sceneRef.current && text.trim() !== "") {
       const id = Date.now();
       const font = options.font || selectedFont;
       const textColor = options.textColor || fontColor;
       const fontSize = options.fontSize || 40;
-      const decalTexture = createStyledTextTexture({
+      const decalTexture = await createStyledTextTexture({
         text,
         font,
         fontSize: 160,
@@ -655,8 +692,8 @@ export default function ShirtTool() {
     }
   };
 
-  const handleTextApply = () => {
-    addTextDecal(textInput);
+  const handleTextApply = async () => {
+    await addTextDecal(textInput);
     setTextInput("");
   };
 
@@ -732,7 +769,7 @@ export default function ShirtTool() {
 
 
   return (
-    <main className={styles.container}>
+    <main className={`${styles.container} ${operationsOpen ? styles.toolsOpen : styles.toolsClosed}`}>
       <div className={`${styles.lampWrapper} ${lampOn ? styles.on : styles.off}`}>
         <div className={styles.lampTop}></div>
         <div className={styles.lampShade}></div>
@@ -828,6 +865,7 @@ export default function ShirtTool() {
       <div className={styles.scene}>
         <DesignScene
           ref={sceneRef}
+          sceneApiRef={sceneRef}
           onMoodChange={setCurrentMood}
           onSceneReady={() => setSceneReady(true)}
         />
