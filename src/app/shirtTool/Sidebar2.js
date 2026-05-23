@@ -1,6 +1,6 @@
 'use client';
 import styles from './designpage.module.css';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import dynamic from "next/dynamic";
 import { 
   FaTshirt,
@@ -58,12 +58,44 @@ export default function SidebarDock({
   orders,
   handleCheckoutChange,
   handleSubmitOrder,
+  onPlacementModeChange,
 }) {
   const [activePanel, setActivePanel] = useState(null);
-   const [openDecalId, setOpenDecalId] = useState(null);
+  const [openDecalId, setOpenDecalId] = useState(null);
+  const [placementDecalId, setPlacementDecalId] = useState(null);
+  const placementDecal = decals.find((decal) => decal.id === placementDecalId);
+  const isPlacementMode = Boolean(placementDecal);
+
+  useEffect(() => {
+    onPlacementModeChange?.(isPlacementMode);
+  }, [onPlacementModeChange, isPlacementMode]);
+
+  const enterPlacementMode = (decal) => {
+    setPlacementDecalId(decal.id);
+    setOpenDecalId(decal.id);
+    setActivePanel(null);
+    sceneRef.current?.selectDecalById(decal.id);
+    sceneRef.current?.setCameraView(decal.side === "back" ? "back" : "front");
+  };
+
+  const exitPlacementMode = () => {
+    setPlacementDecalId(null);
+    setActivePanel('decals');
+  };
+
+  const flipPlacementSide = async () => {
+    if (!placementDecal) return;
+    const nextSide = placementDecal.side === "front" ? "back" : "front";
+    await handleFlipSide(placementDecal.id);
+    sceneRef.current?.setCameraView(nextSide === "back" ? "back" : "front");
+  };
+
   const removeDecal = (id) => {
     sceneRef.current.removeDecalById(id);
     setDecals(prev => prev.filter(d => d.id !== id));
+    if (placementDecalId === id) {
+      setPlacementDecalId(null);
+    }
   };
 
   const getDecalPreviewStyle = (decal) => {
@@ -193,6 +225,10 @@ export default function SidebarDock({
 
         {/* Content */}
         <div className={isOpen ? styles.decalExpanded : styles.decalCollapsed}>
+          <button className={styles.placementStartBtn} onClick={() => enterPlacementMode(decal)}>
+            Place
+          </button>
+
           <div className={styles.decalControlCard}>
             <label>Precision: {moveStep.toFixed(2)} units</label>
             <input type="range" min={0.01} max={1.0} step={0.01} value={moveStep}
@@ -377,6 +413,56 @@ export default function SidebarDock({
         )}
 
       </div>
+
+      {placementDecal && (
+        <div className={styles.placementBar}>
+          <div className={styles.placementHeader}>
+            <div className={styles.placementMeta}>
+              <span>{getShortLabel(placementDecal.label)}</span>
+              <strong>{placementDecal.side === "front" ? "Front" : "Back"}</strong>
+            </div>
+            <button className={styles.placementDoneBtn} onClick={exitPlacementMode}>
+              Done
+            </button>
+          </div>
+
+          <div className={styles.placementGrid}>
+            <button aria-label="Move left" onClick={() => handleMove(placementDecal.id, "left")}><FaArrowLeft /></button>
+            <button aria-label="Move up" onClick={() => handleMove(placementDecal.id, "up")}><FaArrowUp /></button>
+            <button aria-label="Move down" onClick={() => handleMove(placementDecal.id, "down")}><FaArrowDown /></button>
+            <button aria-label="Move right" onClick={() => handleMove(placementDecal.id, "right")}><FaArrowRight /></button>
+            <button aria-label="Scale down" onClick={() => {
+              if (placementDecal.type === "text") {
+                handleFontScale(placementDecal.id, "decrease");
+              } else {
+                handleScale(placementDecal.id, "decrease");
+              }
+            }}><FaMinus /></button>
+            <button aria-label="Scale up" onClick={() => {
+              if (placementDecal.type === "text") {
+                handleFontScale(placementDecal.id, "increase");
+              } else {
+                handleScale(placementDecal.id, "increase");
+              }
+            }}><FaPlus /></button>
+            <button className={styles.placementSideBtn} onClick={flipPlacementSide}>
+              {placementDecal.side === "front" ? "Back" : "Front"}
+            </button>
+          </div>
+
+          <label className={styles.placementPrecision}>
+            <span>{moveStep.toFixed(2)}</span>
+            <input
+              type="range"
+              min={0.01}
+              max={1.0}
+              step={0.01}
+              value={moveStep}
+              onChange={(e) => setMoveStep(parseFloat(e.target.value))}
+            />
+          </label>
+        </div>
+      )}
     </>
   );
 }

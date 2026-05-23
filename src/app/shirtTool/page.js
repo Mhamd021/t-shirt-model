@@ -240,6 +240,7 @@ export default function ShirtTool() {
   const [currentDesignId, setCurrentDesignId] = useState(null);
   const [currentDesignName, setCurrentDesignName] = useState("");
   const [savedDesigns, setSavedDesigns] = useState([]);
+  const [placementMode, setPlacementMode] = useState(false);
   const [operationsOpen, setOperationsOpen] = useState(() => {
     if (typeof window === "undefined") return true;
     return !window.matchMedia("(max-width: 900px)").matches;
@@ -769,7 +770,7 @@ export default function ShirtTool() {
 
 
   return (
-    <main className={`${styles.container} ${operationsOpen ? styles.toolsOpen : styles.toolsClosed}`}>
+    <main className={`${styles.container} ${operationsOpen ? styles.toolsOpen : styles.toolsClosed} ${placementMode ? styles.placingDecal : ""}`}>
       <div className={`${styles.lampWrapper} ${lampOn ? styles.on : styles.off}`}>
         <div className={styles.lampTop}></div>
         <div className={styles.lampShade}></div>
@@ -903,6 +904,7 @@ export default function ShirtTool() {
         orders={orders}
         handleCheckoutChange={handleCheckoutChange}
         handleSubmitOrder={handleSubmitOrder}
+        onPlacementModeChange={setPlacementMode}
         showNavBar={true}
       />
 

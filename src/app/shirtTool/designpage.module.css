@@ -876,6 +876,121 @@
   margin-top: 4px;
 }
 
+.placementStartBtn {
+  width: 100%;
+  min-height: 42px;
+  margin-bottom: 10px;
+  border: 1px solid rgba(184, 103, 67, 0.2);
+  border-radius: 12px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-size: 0.9rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.placementStartBtn:hover {
+  transform: translateY(-1px);
+  background: rgba(184, 103, 67, 0.22);
+}
+
+.placementBar {
+  position: fixed;
+  left: 50%;
+  bottom: 18px;
+  z-index: 2300;
+  width: min(520px, calc(100vw - 28px));
+  transform: translateX(-50%);
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: var(--panel-shadow);
+  backdrop-filter: blur(20px);
+}
+
+.placementHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.placementMeta {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.placementMeta span,
+.placementMeta strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.placementMeta span {
+  color: var(--text-strong);
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.placementMeta strong {
+  color: var(--text-muted);
+  font-size: 0.76rem;
+}
+
+.placementDoneBtn {
+  min-height: 38px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #c77750 0%, #9c5435 100%);
+  color: #fff;
+  font-size: 0.86rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.placementGrid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(38px, 1fr));
+  gap: 8px;
+}
+
+.placementGrid button {
+  min-width: 0;
+  height: 42px;
+  border: 1px solid rgba(71, 85, 105, 0.1);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--text-strong);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.placementSideBtn {
+  font-size: 0.78rem;
+}
+
+.placementPrecision {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.placementPrecision input {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
 .decalPreview img,
 .decalPreview span {
   display: block;
@@ -913,6 +1028,20 @@ hr.divider {
   .scene {
     margin: 146px 10px 86px;
     border-radius: 18px;
+  }
+
+  .placingDecal .scene {
+    margin: 10px 8px 176px;
+  }
+
+  .placingDecal .operationsToggle,
+  .placingDecal .viewSelector,
+  .placingDecal .saveStatus,
+  .placingDecal .toolDock,
+  .placingDecal .sidePanel,
+  .placingDecal .lampWrapper,
+  .placingDecal .moodSelector {
+    display: none;
   }
 
   .toolsClosed .scene {
@@ -1045,6 +1174,29 @@ hr.divider {
   .savedDesignActions {
     grid-template-columns: 1fr 42px;
   }
+
+  .placementBar {
+    bottom: 10px;
+    width: calc(100vw - 16px);
+    max-height: 160px;
+    padding: 10px;
+    gap: 8px;
+    border-radius: 16px;
+  }
+
+  .placementGrid {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .placementGrid button {
+    height: 40px;
+    border-radius: 11px;
+  }
+
+  .placementPrecision {
+    grid-template-columns: 38px 1fr;
+  }
 }
 
 @media (max-width: 520px) {
@@ -1061,6 +1213,10 @@ hr.divider {
   .scene {
     margin: 138px 8px 80px;
     border-radius: 14px;
+  }
+
+  .placingDecal .scene {
+    margin: 8px 6px 166px;
   }
 
   .toolsClosed .scene {
@@ -1090,5 +1246,28 @@ hr.divider {
     min-width: 0;
     width: calc(100vw - 48px);
     border-radius: 18px;
+  }
+
+  .placementBar {
+    max-height: 150px;
+  }
+
+  .placementHeader {
+    gap: 8px;
+  }
+
+  .placementMeta span {
+    font-size: 0.82rem;
+  }
+
+  .placementDoneBtn {
+    min-height: 34px;
+    padding: 0 12px;
+  }
+
+  .placementGrid button {
+    height: 38px;
+    border-radius: 10px;
+    font-size: 0.78rem;
   }
 }
