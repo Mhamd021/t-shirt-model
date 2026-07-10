@@ -2,7 +2,8 @@
 import { useState } from 'react'; 
 import { useRouter } from 'next/navigation';
 import styles from './login.module.css';
-import { login } from '../services/authService'; 
+import { login } from '../services/authService';
+import { DEMO_MODE_MESSAGE, isDemoMode } from '../services/apiClient'; 
 
 export default function Login() {
     const router = useRouter();
@@ -36,6 +37,9 @@ export default function Login() {
                     <label className={styles.headLabel}>Sign In</label>
 
                     {error && <p className={styles.error}>{error}</p>} {/* Display errors dynamically */}
+                    {isDemoMode && !error && (
+                        <p className={styles.error}>{DEMO_MODE_MESSAGE}</p>
+                    )}
 
                     <form onSubmit={handleLogin}>
                         <div>

@@ -1,6 +1,7 @@
 'use client';
 import styles from './designpage.module.css';
 import { useEffect, useState } from 'react';
+import { DEMO_MODE_MESSAGE, isDemoMode } from '../services/apiClient';
 import dynamic from "next/dynamic";
 import { 
   FaTshirt,
@@ -289,6 +290,11 @@ export default function SidebarDock({
           <div className={styles.panelSection}>
             <h3><FaFolderOpen/> Saved Designs</h3>
             <p className={styles.panelIntro}>Load a previous design, clean up older drafts, or start fresh.</p>
+            {isDemoMode && (
+              <div className={styles.panelCard}>
+                <p className={styles.emptyState}>{DEMO_MODE_MESSAGE}</p>
+              </div>
+            )}
             <div className={styles.panelCard}>
               <button onClick={handleNewDesign} className={styles.applyTextBtn}>
                 New Blank Design
@@ -329,6 +335,11 @@ export default function SidebarDock({
           <div className={styles.panelSection}>
             <h3><FaShoppingCart/> Checkout</h3>
             <p className={styles.panelIntro}>Choose a shirt size and delivery details to create an order from this design.</p>
+            {isDemoMode && (
+              <div className={styles.panelCard}>
+                <p className={styles.emptyState}>{DEMO_MODE_MESSAGE}</p>
+              </div>
+            )}
 
             <form className={styles.checkoutForm} onSubmit={handleSubmitOrder}>
               <div className={styles.panelCard}>

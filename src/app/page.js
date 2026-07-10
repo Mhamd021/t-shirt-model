@@ -13,12 +13,12 @@ const workflowSteps = [
   {
     number: "02",
     title: "Save",
-    text: "Keep your best designs in your account so you can return, compare, and refine.",
+    text: "Keep your best designs locally in the demo so you can return, compare, and refine.",
   },
   {
     number: "03",
     title: "Order",
-    text: "Move from design to checkout with the saved mockup attached to your request.",
+    text: "Move from design to checkout with the saved mockup attached to your request in demo mode.",
   },
 ];
 
@@ -29,11 +29,11 @@ const featureItems = [
   },
   {
     title: "Cloud-backed projects",
-    text: "Saved designs, uploaded images, and order details connect to your backend account flow.",
+    text: "Saved designs, uploaded images, and order details stay local in demo mode while the 3D experience remains interactive.",
   },
   {
     title: "Ready for growth",
-    text: "The app can expand into AI tools, payment, admin review, and production tracking later.",
+    text: "The app can expand into AI tools, payment, admin review, and production tracking later when the backend is connected.",
   },
 ];
 

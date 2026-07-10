@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "../login/login.module.css";
 import { register } from "../services/authService";
+import { DEMO_MODE_MESSAGE, isDemoMode } from "../services/apiClient";
 
 export default function Register() {
   const router = useRouter();
@@ -68,6 +69,7 @@ export default function Register() {
         <div className={`${styles.loginCard} ${styles.registerCard}`}>
           <label className={styles.headLabel}>Create Account</label>
           {errorMessage && <div className={styles.serverErrorMessage}>{errorMessage}</div>}
+          {isDemoMode && !errorMessage && <div className={styles.serverErrorMessage}>{DEMO_MODE_MESSAGE}</div>}
 
           <form onSubmit={handleRegister}>
             <div className={styles.formContainer}>

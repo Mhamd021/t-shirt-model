@@ -1,6 +1,13 @@
-import { apiClient } from "./apiClient";
+import { apiClient, isDemoMode } from "./apiClient";
 
 const uploadFile = async (path, file) => {
+  if (isDemoMode) {
+    return {
+      url: typeof window !== "undefined" ? URL.createObjectURL(file) : "",
+      publicId: `demo-${Date.now()}`,
+    };
+  }
+
   const formData = new FormData();
   formData.append("file", file);
 

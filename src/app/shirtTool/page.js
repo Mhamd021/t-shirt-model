@@ -4,7 +4,12 @@ import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import styles from "./designpage.module.css";
 import LoadingOverlay from "../components/LoadingOverlay";
-import { ACCESS_TOKEN_KEY, getApiErrorMessage } from "../services/apiClient";
+import {
+  ACCESS_TOKEN_KEY,
+  DEMO_MODE_MESSAGE,
+  getApiErrorMessage,
+  isDemoMode,
+} from "../services/apiClient";
 import {
   createDesign,
   deleteDesign,
@@ -236,7 +241,7 @@ export default function ShirtTool() {
   const [currentMood, setCurrentMood] = useState('original');
   const [activeView, setActiveView] = useState("front");
   const [autoRotate, setAutoRotate] = useState(true);
-  const [saveStatus, setSaveStatus] = useState("");
+  const [saveStatus, setSaveStatus] = useState(isDemoMode ? DEMO_MODE_MESSAGE : "");
   const [currentDesignId, setCurrentDesignId] = useState(null);
   const [currentDesignName, setCurrentDesignName] = useState("");
   const [savedDesigns, setSavedDesigns] = useState([]);
@@ -757,7 +762,11 @@ export default function ShirtTool() {
     try {
       setLoading(true);
       const design = await persistCurrentDesign();
-      setSaveStatus(`${currentDesignId ? "Updated" : "Saved"} design #${design.id}`);
+      setSaveStatus(
+        isDemoMode
+          ? `Demo design saved locally as #${design.id}`
+          : `${currentDesignId ? "Updated" : "Saved"} design #${design.id}`
+      );
     } catch (error) {
       console.error("Design save error", error);
       setSaveStatus(getApiErrorMessage(error));
