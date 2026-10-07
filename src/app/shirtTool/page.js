@@ -197,7 +197,7 @@ async function toFrontendDecal(savedDecal) {
         font,
         fontSize: fontSize * 4,
         textColor,
-        mirrored: side === "back",
+        mirrored: false,
       }),
       position,
       orientation,
@@ -519,7 +519,7 @@ export default function ShirtTool() {
           font: targetDecal.font,
           fontSize: targetDecal.fontSize * 4,
           textColor: targetDecal.textColor,
-          mirrored: newSide === "back",
+          mirrored: false,
         })
       : targetDecal.texture;
 
@@ -586,7 +586,7 @@ export default function ShirtTool() {
       font: newFont,
       fontSize: targetDecal.fontSize * 4,
       textColor: newColor,
-      mirrored: targetDecal.side === "back",
+      mirrored: false,
     });
 
     sceneRef.current.updateDecalGeometry(targetDecal.id, {
@@ -623,7 +623,7 @@ export default function ShirtTool() {
       font: targetDecal.font,
       fontSize: newFontSize * 4,
       textColor: targetDecal.textColor,
-      mirrored: targetDecal.side === "back",
+      mirrored: false,
     });
 
     sceneRef.current.updateDecalGeometry(targetDecal.id, {
