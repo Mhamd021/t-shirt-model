@@ -35,6 +35,14 @@ const getTHREE = () => {
   return threeModulePromise;
 };
 
+const getDecalPositionZ = (side) => (side === "back" ? 0.2 : -0.2);
+
+const getDecalOrientation = (side) => ({
+  x: 0,
+  y: side === "back" ? 0 : Math.PI,
+  z: 0,
+});
+
 async function createStyledTextTexture({
   text,
   font,
@@ -165,13 +173,9 @@ async function toFrontendDecal(savedDecal) {
   const position = {
     x: savedDecal.positionX ?? 0,
     y: savedDecal.positionY ?? 0.2,
-    z: savedDecal.positionZ ?? -0.2,
+    z: savedDecal.positionZ ?? getDecalPositionZ(side),
   };
-  const orientation = {
-    x: savedDecal.orientationX ?? 0,
-    y: savedDecal.orientationY ?? Math.PI,
-    z: savedDecal.orientationZ ?? 0,
-  };
+  const orientation = getDecalOrientation(side);
   const size = {
     x: savedDecal.scaleX ?? 0.5,
     y: savedDecal.scaleY ?? 0.5,
@@ -275,10 +279,10 @@ export default function ShirtTool() {
 
 
   useEffect(() => {
-    if (!localStorage.getItem(ACCESS_TOKEN_KEY)) {
-      router.push("/login");
-      return;
-    }
+    // if (!localStorage.getItem(ACCESS_TOKEN_KEY)) {
+    //   router.push("/login");
+    //   return;
+    // }
 
 
     if (sceneRef.current) {
@@ -507,8 +511,8 @@ export default function ShirtTool() {
     if (!targetDecal) return;
 
     const newSide = targetDecal.side === "front" ? "back" : "front";
-    const newPosition = { ...targetDecal.position, z: newSide === "front" ? -0.2 : 0.2 };
-    const newOrientation = { ...targetDecal.orientation, y: newSide === "front" ? 0 : Math.PI };
+    const newPosition = { ...targetDecal.position, z: getDecalPositionZ(newSide) };
+    const newOrientation = getDecalOrientation(newSide);
     const updatedTexture = targetDecal.type === "text"
       ? await createStyledTextTexture({
           text: targetDecal.label,
@@ -668,8 +672,8 @@ export default function ShirtTool() {
         mirrored: false,
       });
 
-      const position = { x: 0, y: 0.2, z: -0.2 };
-      const orientation = { x: 0, y: Math.PI, z: 0 };
+      const position = { x: 0, y: 0.2, z: getDecalPositionZ("front") };
+      const orientation = getDecalOrientation("front");
       const size = { x: 0.5, y: 0.5, z: 0.5 };
 
       setDecals((prev) => [
@@ -706,8 +710,8 @@ export default function ShirtTool() {
 
   const addImageDecal = ({ fileName, texture, uploadedImage }) => {
     const id = Date.now();
-    const position = { x: 0, y: 0.2, z: -0.2 };
-    const orientation = { x: 0, y: Math.PI, z: 0 };
+    const position = { x: 0, y: 0.2, z: getDecalPositionZ("front") };
+    const orientation = getDecalOrientation("front");
     const size = { x: 0.5, y: 0.5, z: 0.5 };
 
     setDecals(prev => [
